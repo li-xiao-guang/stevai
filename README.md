@@ -1,2 +1,1 @@
-# build-ai-algorithms-from-scratch
-Build AI Algorithms from Scratch
+# Build AI Algorithms from Scratch
