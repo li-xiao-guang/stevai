@@ -1,2 +1,2 @@
-# baafs
-Building AI Algorithms from Scratch
+# build-ai-algorithms-from-scratch
+Build AI Algorithms from Scratch
