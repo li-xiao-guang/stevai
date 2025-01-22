@@ -32,11 +32,11 @@ class Tensor:
                 if other.requires_grad:
                     other.backward(grad)
 
-            tensor = Tensor(self.data + other.data, requires_grad=True)
+            tensor = Tensor(self.data.__add__(other.data), requires_grad=True)
             tensor.backward_fn = backward_fn
             return tensor
 
-        return Tensor(self.data + other.data)
+        return Tensor(self.data.__add__(other.data))
 
     def __sub__(self, other: 'Tensor'):
         if self.requires_grad or other.requires_grad:
@@ -46,11 +46,11 @@ class Tensor:
                 if other.requires_grad:
                     other.backward(grad.__neg__())
 
-            tensor = Tensor(self.data - other.data, requires_grad=True)
+            tensor = Tensor(self.data.__sub__(other.data), requires_grad=True)
             tensor.backward_fn = backward_fn
             return tensor
 
-        return Tensor(self.data - other.data)
+        return Tensor(self.data.__sub__(other.data))
 
     def __mul__(self, other: 'Tensor'):
         if self.requires_grad or other.requires_grad:
@@ -60,11 +60,11 @@ class Tensor:
                 if other.requires_grad:
                     other.backward(Tensor(grad.data * self.data))
 
-            tensor = Tensor(self.data * other.data, requires_grad=True)
+            tensor = Tensor(self.data.__mul__(other.data), requires_grad=True)
             tensor.backward_fn = backward_fn
             return tensor
 
-        return Tensor(self.data * other.data)
+        return Tensor(self.data.__mul__(other.data))
 
     def __neg__(self):
         if self.requires_grad:
@@ -72,11 +72,11 @@ class Tensor:
                 if self.requires_grad:
                     self.backward(grad.__neg__())
 
-            tensor = Tensor(self.data * -1, requires_grad=True)
+            tensor = Tensor(self.data.__neg__(), requires_grad=True)
             tensor.backward_fn = backward_fn
             return tensor
 
-        return Tensor(self.data * -1)
+        return Tensor(self.data.__neg__())
 
     def transpose(self):
         if self.requires_grad:
@@ -84,25 +84,25 @@ class Tensor:
                 if self.requires_grad:
                     self.backward(grad.transpose())
 
-            tensor = Tensor(self.data.T, requires_grad=True)
+            tensor = Tensor(self.data.transpose(), requires_grad=True)
             tensor.backward_fn = backward_fn
             return tensor
 
-        return Tensor(self.data.T)
+        return Tensor(self.data.transpose())
 
-    def mm(self, other: 'Tensor'):
+    def dot(self, other: 'Tensor'):
         if self.requires_grad or other.requires_grad:
             def backward_fn(grad):
                 if self.requires_grad:
-                    self.backward(Tensor(np.dot(grad.data, other.data.T)))
+                    self.backward(Tensor(grad.data.dot(other.data.transpose())))
                 if other.requires_grad:
-                    other.backward(Tensor(np.dot(self.data.T, grad.data)))
+                    other.backward(Tensor(self.data.transpose().dot(grad.data)))
 
-            tensor = Tensor(np.dot(self.data, other.data), requires_grad=True)
+            tensor = Tensor(self.data.dot(other.data), requires_grad=True)
             tensor.backward_fn = backward_fn
             return tensor
 
-        return Tensor(np.dot(self.data, other.data))
+        return Tensor(self.data.dot(other.data))
 
     def sum(self, axis=None):
         if self.requires_grad:
@@ -115,14 +115,11 @@ class Tensor:
                         grad_broadcast = np.broadcast_to(grad_expanded, self.data.shape)
                     self.backward(Tensor(grad_broadcast))
 
-            tensor = Tensor(np.sum(self.data, axis=axis), requires_grad=True)
+            tensor = Tensor(self.data.sum(axis=axis), requires_grad=True)
             tensor.backward_fn = backward_fn
             return tensor
 
-        return Tensor(np.sum(self.data, axis=axis))
-
-    def shape(self):
-        return self.data.shape
+        return Tensor(self.data.sum(axis=axis))
 
     def __repr__(self):
         return str(self.data.__repr__())
@@ -134,14 +131,11 @@ class Tensor:
 class Linear:
 
     def __init__(self, input_size, output_size):
-        self.weights = list()
-
         weight = np.random.rand(input_size, output_size)
         self.weight = Tensor(weight, requires_grad=True)
-        self.weights.append(self.weight)
 
     def forward(self, inputs):
-        return inputs.mm(self.weight)
+        return inputs.dot(self.weight)
 
 
 class Sequential:
@@ -164,21 +158,20 @@ class Sequential:
 if __name__ == '__main__':
     np.random.seed(0)
 
-    inputs = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), requires_grad=True)
+    examples = Tensor(np.array([[0, 0], [0, 1], [1, 0], [1, 1]]), requires_grad=True)
     labels = Tensor(np.array([[0], [1], [0], [1]]), requires_grad=True)
 
     models = Sequential([Linear(2, 3),
                          Linear(3, 1)])
 
     for i in range(10):
-        outputs = models.forward(inputs)
+        predictions = models.forward(examples)
 
-        error = ((outputs - labels) * (outputs - labels)).sum(0)
-        error.backward(Tensor(np.ones_like(error.data)))
+        error = ((predictions - labels) * (predictions - labels)).sum(0)
+        error.backward()
 
         for m in models.layers:
-            for w in m.weights:
-                w.data -= w.grad.data * 0.1
-                w.grad.data *= 0
+            m.weight.data -= m.weight.grad.data * 0.1
+            m.weight.grad.data *= 0
 
         print(error)

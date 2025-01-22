@@ -13,7 +13,7 @@ def backward(x, d):
 
 # loss function
 def loss(p, y):
-    return ((p - y) ** 2).mean()
+    return (p - y) ** 2
 
 
 # derivative of the loss function

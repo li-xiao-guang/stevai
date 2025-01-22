@@ -3,7 +3,7 @@ import numpy as np
 
 # neuron definition
 def forward(x, w):
-    return np.dot(x, w)
+    return x @ w
 
 
 # layer connection definition (input_size, output_size)
