@@ -106,7 +106,7 @@ class Softmax(Layer):
         return p
 
 
-class Sequential:
+class Model:
 
     def __init__(self, layers):
         self.layers = layers
@@ -169,14 +169,14 @@ def normalize(x):
 np.random.seed(1)
 
 # layer definition (input_size, output_size)
-layer = Sequential([Linear(3, 8),
-                    Tanh(),
-                    Dropout(),
-                    Linear(8, 2),
-                    Softmax(1)])
+model = Model([Linear(3, 8),
+               Tanh(),
+               Dropout(),
+               Linear(8, 2),
+               Softmax(1)])
 
 loss = MSELoss()
-optimizer = SGD(layer.weights(), alpha=0.01)
+optimizer = SGD(model.weights(), alpha=0.01)
 
 # input
 examples = normalize(np.array([[25.5, 65.0, 800],
@@ -206,7 +206,7 @@ for epoch in range(epoch_num):
         label = Tensor(labels[i: i + 1])
 
         # output
-        prediction = layer.forward(example)
+        prediction = model.forward(example)
 
         # evaluate
         error = loss(prediction, label)
@@ -220,7 +220,7 @@ for epoch in range(epoch_num):
     print("Mean Squared Error: ", f'{epoch_error / len(examples): .4f}')
 
 # test
-layer.eval()
+model.eval()
 test_examples = normalize(np.array([[15.5, 40.0, 300],
                                     [30.2, 72.0, 880],
                                     [23.8, 68.0, 820]]))
@@ -228,7 +228,7 @@ test_labels = np.array([[0.4, 0.3],
                         [0.5, 0.4],
                         [0.9, 0.4]])
 
-test_predictions = layer.forward(Tensor(test_examples))
+test_predictions = model.forward(Tensor(test_examples))
 
 test_error = loss(test_predictions, Tensor(test_labels))
 print("Test Mean Squared Error: ", f'{test_error.data: .4f}')
