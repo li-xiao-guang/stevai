@@ -16,10 +16,10 @@ class Dropout(nn.Module):
         return x * mask
 
 
-class SimpleNN(nn.Module):
+class Model(nn.Module):
 
     def __init__(self, in_size, hidden_size, out_size):
-        super(SimpleNN, self).__init__()
+        super(Model, self).__init__()
 
         self.layer1 = nn.Linear(in_size, hidden_size, bias=False)
         self.layer1.weight = nn.Parameter(torch.ones_like(self.layer1.weight))
@@ -44,7 +44,7 @@ def normalize(x):
 
 
 # layer definition (out_size, in_size)
-model = SimpleNN(3, 8, 2)
+model = Model(3, 8, 2)
 
 loss = nn.MSELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
