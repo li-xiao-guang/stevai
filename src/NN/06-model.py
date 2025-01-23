@@ -27,6 +27,13 @@ class Layer:
     def __init__(self, weight: Tensor):
         self.weight = weight
 
+
+class Linear(Layer):
+
+    def __init__(self, in_size, out_size):
+        weight = Tensor(np.ones([out_size, in_size]), requires_grad=True)
+        super().__init__(weight)
+
     def forward(self, x: Tensor):
         p = Tensor(x.data.dot(self.weight.data.T), requires_grad=True)
 
@@ -39,13 +46,6 @@ class Layer:
         p.backward_fn = backward_fn
         p.parents = {self.weight, x}
         return p
-
-
-class Linear(Layer):
-
-    def __init__(self, in_size, out_size):
-        weight = Tensor(np.ones([out_size, in_size]), requires_grad=True)
-        super().__init__(weight)
 
 
 class Model:

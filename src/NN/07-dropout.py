@@ -28,19 +28,6 @@ class Layer:
         self.weight = weight
         self.training = True
 
-    def forward(self, x: Tensor):
-        p = Tensor(x.data.dot(self.weight.data.T), requires_grad=True)
-
-        def backward_fn():
-            if self.weight.requires_grad:
-                self.weight.grad = p.grad.T.dot(x.data)
-            if x.requires_grad:
-                x.grad = p.grad.dot(self.weight.data)
-
-        p.backward_fn = backward_fn
-        p.parents = {self.weight, x}
-        return p
-
     def train(self):
         self.training = True
 
@@ -53,6 +40,19 @@ class Linear(Layer):
     def __init__(self, in_size, out_size):
         weight = Tensor(np.ones([out_size, in_size]), requires_grad=True)
         super().__init__(weight)
+
+    def forward(self, x: Tensor):
+        p = Tensor(x.data.dot(self.weight.data.T), requires_grad=True)
+
+        def backward_fn():
+            if self.weight.requires_grad:
+                self.weight.grad = p.grad.T.dot(x.data)
+            if x.requires_grad:
+                x.grad = p.grad.dot(self.weight.data)
+
+        p.backward_fn = backward_fn
+        p.parents = {self.weight, x}
+        return p
 
 
 class Dropout(Layer):
