@@ -9,14 +9,14 @@ class Model(nn.Module):
     def __init__(self, in_size, hidden_size, out_size):
         super(Model, self).__init__()
 
-        self.layer1 = nn.Linear(in_size, hidden_size, bias=False)
-        self.layer1.weight = nn.Parameter(torch.ones_like(self.layer1.weight))
-        self.layer2 = nn.Linear(hidden_size, out_size, bias=False)
-        self.layer2.weight = nn.Parameter(torch.ones_like(self.layer2.weight))
+        self.hidden = nn.Linear(in_size, hidden_size, bias=False)
+        self.hidden.weight = nn.Parameter(torch.ones_like(self.hidden.weight))
+        self.output = nn.Linear(hidden_size, out_size, bias=False)
+        self.output.weight = nn.Parameter(torch.ones_like(self.output.weight))
 
     def forward(self, x):
-        x = self.layer1(x)
-        x = self.layer2(x)
+        x = self.hidden(x)
+        x = self.output(x)
         return x
 
 
