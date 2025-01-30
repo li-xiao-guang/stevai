@@ -30,7 +30,7 @@ def normalize(x):
 
 
 # layer definition (out_size, in_size)
-weight = np.ones((2, 3))
+weight = np.ones((2, 3)) / 3
 
 # input
 examples = normalize(np.array([[25.5, 65.0, 800],

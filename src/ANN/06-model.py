@@ -30,8 +30,8 @@ def normalize(x):
 
 
 # layer definition (out_size, in_size)
-hidden_weight = np.ones((8, 3))
-output_weight = np.ones((2, 8))
+hidden_weight = np.ones((8, 3)) / 3
+output_weight = np.ones((2, 8)) / 8
 
 # input
 examples = normalize(np.array([[25.5, 65.0, 800],

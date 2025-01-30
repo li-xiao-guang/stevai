@@ -38,7 +38,7 @@ class Layer:
 class Linear(Layer):
 
     def __init__(self, in_size, out_size):
-        weight = Tensor(np.ones([out_size, in_size]), requires_grad=True)
+        weight = Tensor(np.ones([out_size, in_size]) / in_size, requires_grad=True)
         super().__init__(weight)
 
     def forward(self, x: Tensor):

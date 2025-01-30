@@ -16,35 +16,17 @@ class Dropout(nn.Module):
         return x * mask
 
 
-class Model(nn.Module):
-
-    def __init__(self, in_size, hidden_size, out_size):
-        super(Model, self).__init__()
-
-        self.hidden = nn.Linear(in_size, hidden_size, bias=False)
-        self.hidden.weight = nn.Parameter(torch.ones_like(self.hidden.weight))
-        self.tanh = nn.Tanh()
-        self.mask = Dropout()
-        self.output = nn.Linear(hidden_size, out_size, bias=False)
-        self.output.weight = nn.Parameter(torch.ones_like(self.output.weight))
-        self.softmax = nn.Softmax(1)
-
-    def forward(self, x):
-        x = self.hidden(x)
-        x = self.tanh(x)
-        x = self.mask(x)
-        x = self.output(x)
-        x = self.softmax(x)
-        return x
-
-
 # data normalization
 def normalize(x):
     return (x - x.min(axis=0)) / (x.max(axis=0) - x.min(axis=0))
 
 
 # layer definition (out_size, in_size)
-model = Model(3, 8, 2)
+hidden = nn.Linear(3, 8, bias=False)
+hidden.weight = nn.Parameter(torch.ones_like(hidden.weight) / 3)
+output = nn.Linear(8, 2, bias=False)
+output.weight = nn.Parameter(torch.ones_like(output.weight) / 8)
+model = nn.Sequential(hidden, nn.Tanh(), Dropout(), output, nn.Softmax(1))
 
 loss = nn.MSELoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)

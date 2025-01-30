@@ -11,7 +11,7 @@ def normalize(x):
 
 
 # layer definition (out_size, in_size)
-weight = np.ones([2, 3])
+weight = np.ones([2, 3]) / 3
 
 layer = nn.Linear(3, 2, bias=False)
 layer.weight = nn.Parameter(torch.Tensor(weight))
