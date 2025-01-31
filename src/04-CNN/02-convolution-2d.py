@@ -60,7 +60,6 @@ def normalize(x, y):
     return inputs, targets
 
 
-np.random.seed(1)
 input_rows, input_cols = (28, 28)
 kernel_rows, kernel_cols = (3, 3)
 kernel_num = 16
