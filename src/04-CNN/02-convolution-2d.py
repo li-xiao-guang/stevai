@@ -65,8 +65,6 @@ kernel_rows, kernel_cols = (3, 3)
 kernel_num = 16
 output_num = 10
 
-sample_num = 1000
-
 flatten_size = (input_rows - kernel_rows + 1) * (input_cols - kernel_cols + 1) * kernel_num
 
 # layer definition
@@ -83,9 +81,10 @@ loss = nn.MSELoss()
 optimizer = nn.SGD(model.weights(), alpha=0.01)
 
 # inputs
+sample_num = 2000
+
 with np.load('mnist.npz', allow_pickle=True) as f:
     x_train, y_train = f['x_train'][:sample_num], f['y_train'][:sample_num]
-    x_test, y_test = f['x_test'][:sample_num], f['y_test'][:sample_num]
 
 examples, labels = normalize(x_train, y_train)
 
@@ -115,10 +114,15 @@ for epoch in range(epoch_num):
     print(f'Mean Squared Error: {epoch_error / len(examples): .4f}')
 
 # test
-model.eval()
-test_result = 0
+test_sample_num = 1000
+
+with np.load('mnist.npz', allow_pickle=True) as f:
+    x_test, y_test = f['x_test'][:test_sample_num], f['y_test'][:test_sample_num]
 
 test_examples, test_labels = normalize(x_test, y_test)
+
+model.eval()
+test_result = 0
 
 for i in range(len(test_examples)):
     test_example = nn.Tensor(test_examples[i: i + 1])
