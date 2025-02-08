@@ -113,7 +113,8 @@ class Softmax(Layer):
 
         def backward_fn():
             if x.requires_grad:
-                x.grad = p.data * (p.grad - (p.grad * p.data).sum(axis=self.axis, keepdims=True))
+                grad = p.grad - (p.grad * p.data).sum(axis=self.axis, keepdims=True)
+                x.grad = p.data * grad
 
         p.backward_fn = backward_fn
         p.parents = {x}
