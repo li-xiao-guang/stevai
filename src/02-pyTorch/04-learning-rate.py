@@ -1,8 +1,11 @@
-import numpy as np
 import torch
 import torch.nn as nn
 
 torch.set_default_dtype(torch.float64)
+
+# input
+example = torch.Tensor([25.5, 65.0, 800])
+label = torch.Tensor([2.0, 8.0])
 
 # layer definition (out_size, in_size)
 weight = torch.Tensor([[0.5, 0.5, 0.5],
@@ -13,10 +16,6 @@ layer.weight = nn.Parameter(weight)
 
 loss = nn.MSELoss()
 optimizer = torch.optim.SGD(layer.parameters(), lr=0.000001)
-
-# input
-example = torch.Tensor([25.5, 65.0, 800])
-label = torch.Tensor([2.0, 8.0])
 
 # epochs
 epoch_num = 5

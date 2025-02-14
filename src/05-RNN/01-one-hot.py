@@ -1,15 +1,21 @@
+import re
+
 import numpy as np
+import pandas as pd
 
 import nn
 
 
-class Flatten(nn.Layer):
+class Embedding(nn.Layer):
+
+    def __init__(self, in_size, out_size):
+        weight = nn.Tensor(np.ones([out_size, in_size]) / in_size, requires_grad=True)
+        super().__init__(weight)
 
     def __call__(self, x: nn.Tensor):
         return self.forward(x)
 
-    @staticmethod
-    def forward(x: nn.Tensor):
+    def forward(self, x: nn.Tensor):
         p = nn.Tensor(np.array([x.data.flatten()]), requires_grad=True)
 
         def backward_fn():
@@ -21,31 +27,51 @@ class Flatten(nn.Layer):
         return p
 
 
+def clean_html(data):
+    p = re.compile(r'<.*?>')
+    return p.sub('', data)
+
+
+def convert_lower(text):
+    return text.lower()
+
+
+def remove_special(text):
+    x = ''
+    for t in text:
+        if t.isalnum():
+            x = x + t
+        else:
+            x = x + ' '
+    return x
+
+
 # normalization
 def normalize(x, y):
-    inputs = x / 255
-    targets = np.zeros((len(y), 10))
-    targets[range(len(y)), y] = 1
-    return inputs, targets
+    x = x.apply(clean_html)
+    x = x.apply(convert_lower)
+    x = x.apply(remove_special)
+    reviews = list(map(lambda s: s.split(), x))
+    words = list(set(word for review in reviews for word in review))
+    word2index = {word: words.index(word) for word in words}
+    inputs = [list(set(word2index[word] for word in review)) for review in reviews]
+    targets = list(y.map({'positive': 1, 'negative': 0}))
+    return len(words), inputs, targets
 
 
 # inputs
 sample_num = 2000
 
-with np.load('mnist.npz', allow_pickle=True) as f:
-    x_train, y_train = f['x_train'][:sample_num], f['y_train'][:sample_num]
-examples, labels = normalize(x_train, y_train)
+df = pd.read_csv('imdb.csv')
+word_count, examples, labels = normalize(df['review'], df['sentiment'])
+examples = examples[:sample_num]
+labels = labels[:sample_num]
 
 # layer definition
-input_rows, input_cols = (28, 28)
-flatten_size = input_rows * input_cols
-
-model = nn.Model([Flatten(),
-                  nn.Tanh(),
-                  nn.Linear(flatten_size, 64),
+model = nn.Model([Embedding(word_count, 64),
                   nn.Tanh(),
                   nn.Dropout(),
-                  nn.Linear(64, 10),
+                  nn.Linear(64, 1),
                   nn.Softmax(1)])
 
 loss = nn.MSELoss()
@@ -82,7 +108,7 @@ test_sample_num = 1000
 with np.load('mnist.npz', allow_pickle=True) as f:
     x_test, y_test = f['x_test'][:test_sample_num], f['y_test'][:test_sample_num]
 
-test_examples, test_labels = normalize(x_test, y_test)
+word_count, test_examples, test_labels = normalize(x_test, y_test)
 
 model.eval()
 test_result = 0

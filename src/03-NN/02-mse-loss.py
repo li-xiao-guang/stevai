@@ -26,15 +26,15 @@ class MSELoss:
         return Tensor((delta ** 2).mean())
 
 
+# input
+example = Tensor([25.5, 65.0, 800])
+label = Tensor([2.0, 8.0])
+
 # layer definition (out_size, in_size)
 layer = Layer(Tensor([[0.5, 0.5, 0.5],
                       [1.0, 1.0, 1.0]]))
 
 loss = MSELoss()
-
-# input
-example = Tensor([25.5, 65.0, 800])
-label = Tensor([2.0, 8.0])
 
 # output
 prediction = layer(example)

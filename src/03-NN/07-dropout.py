@@ -93,7 +93,6 @@ class Model:
     def forward(self, x):
         for l in self.layers:
             x = l(x)
-
         return x
 
     def weights(self):
@@ -147,14 +146,6 @@ def normalize(x):
     return (x - x_min) / (x_max - x_min)
 
 
-# layer definition (out_size, in_size)
-model = Model([Linear(3, 8),
-               Dropout(),
-               Linear(8, 2)])
-
-loss = MSELoss()
-optimizer = SGD(model.weights(), alpha=0.01)
-
 # input
 examples = normalize(np.array([[25.5, 65.0, 800],
                                [18.2, 45.0, 400],
@@ -170,6 +161,14 @@ labels = np.array([[0.9, 0.4],
                    [0.2, 0.5],
                    [0.6, 0.3],
                    [0.7, 0.4]])
+
+# layer definition (out_size, in_size)
+model = Model([Linear(3, 8),
+               Dropout(),
+               Linear(8, 2)])
+
+loss = MSELoss()
+optimizer = SGD(model.weights(), alpha=0.01)
 
 # epochs
 epoch_num = 5

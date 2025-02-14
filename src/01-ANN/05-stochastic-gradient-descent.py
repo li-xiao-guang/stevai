@@ -31,9 +31,6 @@ def normalize(x):
     return (x - x_min) / (x_max - x_min)
 
 
-# layer definition (out_size, in_size)
-weight = np.ones((2, 3)) / 3
-
 # input
 examples = normalize(np.array([[25.5, 65.0, 800],
                                [18.2, 45.0, 400],
@@ -49,6 +46,9 @@ labels = np.array([[0.9, 0.4],
                    [0.2, 0.5],
                    [0.6, 0.3],
                    [0.7, 0.4]])
+
+# layer definition (out_size, in_size)
+weight = np.ones((2, 3)) / 3
 
 # epochs
 epoch_num = 5

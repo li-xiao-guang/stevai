@@ -40,7 +40,8 @@ class Flatten(nn.Layer):
     def __call__(self, x: nn.Tensor):
         return self.forward(x)
 
-    def forward(self, x: nn.Tensor):
+    @staticmethod
+    def forward(x: nn.Tensor):
         p = nn.Tensor(np.array([x.data.flatten()]), requires_grad=True)
 
         def backward_fn():
@@ -55,38 +56,35 @@ class Flatten(nn.Layer):
 # normalization
 def normalize(x, y):
     inputs = x / 255
-    targets = np.zeros((len(y), output_num))
+    targets = np.zeros((len(y), 10))
     targets[range(len(y)), y] = 1
     return inputs, targets
 
-
-input_rows, input_cols = (28, 28)
-kernel_rows, kernel_cols = (3, 3)
-kernel_num = 16
-output_num = 10
-
-flatten_size = (input_rows - kernel_rows + 1) * (input_cols - kernel_cols + 1) * kernel_num
-
-# layer definition
-model = nn.Model([Convolution2D(kernel_rows, kernel_cols, kernel_num),
-                  Flatten(),
-                  nn.Tanh(),
-                  nn.Linear(flatten_size, 64),
-                  nn.Tanh(),
-                  nn.Dropout(),
-                  nn.Linear(64, output_num),
-                  nn.Softmax(1)])
-
-loss = nn.MSELoss()
-optimizer = nn.SGD(model.weights(), alpha=0.01)
 
 # inputs
 sample_num = 2000
 
 with np.load('mnist.npz', allow_pickle=True) as f:
     x_train, y_train = f['x_train'][:sample_num], f['y_train'][:sample_num]
-
 examples, labels = normalize(x_train, y_train)
+
+# layer definition
+input_rows, input_cols = (28, 28)
+kernel_rows, kernel_cols = (3, 3)
+kernel_num = 16
+flatten_size = (input_rows - kernel_rows + 1) * (input_cols - kernel_cols + 1) * kernel_num
+
+model = nn.Model([Convolution2D(kernel_rows, kernel_cols, kernel_num),
+                  Flatten(),
+                  nn.Tanh(),
+                  nn.Linear(flatten_size, 64),
+                  nn.Tanh(),
+                  nn.Dropout(),
+                  nn.Linear(64, 10),
+                  nn.Softmax(1)])
+
+loss = nn.MSELoss()
+optimizer = nn.SGD(model.weights(), alpha=0.01)
 
 # epochs
 epoch_num = 20

@@ -21,13 +21,13 @@ def backward(x, d):
     return d.T.dot(x)
 
 
-# layer definition (out_size, in_size)
-weight = np.array([[0.5, 0.5, 0.5],
-                   [1.0, 1.0, 1.0]])
-
 # input
 example = np.array([[25.5, 65.0, 800]])
 label = np.array([[2.0, 8.0]])
+
+# layer definition (out_size, in_size)
+weight = np.array([[0.5, 0.5, 0.5],
+                   [1.0, 1.0, 1.0]])
 
 # epochs
 epoch_num = 5

@@ -12,15 +12,6 @@ def normalize(x):
     return (x - x_min) / (x_max - x_min)
 
 
-# layer definition (out_size, in_size)
-weight = torch.Tensor(np.ones([2, 3]) / 3)
-
-layer = nn.Linear(3, 2, bias=False)
-layer.weight = nn.Parameter(weight)
-
-loss = nn.MSELoss()
-optimizer = torch.optim.SGD(layer.parameters(), lr=0.01)
-
 # input
 examples = normalize(torch.Tensor([[25.5, 65.0, 800],
                                    [18.2, 45.0, 400],
@@ -36,6 +27,15 @@ labels = torch.Tensor([[0.9, 0.4],
                        [0.2, 0.5],
                        [0.6, 0.3],
                        [0.7, 0.4]])
+
+# layer definition (out_size, in_size)
+weight = torch.Tensor(np.ones([2, 3]) / 3)
+
+layer = nn.Linear(3, 2, bias=False)
+layer.weight = nn.Parameter(weight)
+
+loss = nn.MSELoss()
+optimizer = torch.optim.SGD(layer.parameters(), lr=0.01)
 
 # epochs
 epoch_num = 5

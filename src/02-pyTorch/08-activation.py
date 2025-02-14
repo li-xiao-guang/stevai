@@ -2,8 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-np.random.seed(1)
 torch.set_default_dtype(torch.float64)
+np.random.seed(1)
 
 
 class Dropout(nn.Module):
@@ -23,16 +23,6 @@ def normalize(x):
     return (x - x_min) / (x_max - x_min)
 
 
-# layer definition (out_size, in_size)
-hidden = nn.Linear(3, 8, bias=False)
-hidden.weight = nn.Parameter(torch.ones_like(hidden.weight) / 3)
-output = nn.Linear(8, 2, bias=False)
-output.weight = nn.Parameter(torch.ones_like(output.weight) / 8)
-model = nn.Sequential(hidden, nn.Tanh(), Dropout(), output, nn.Softmax(1))
-
-loss = nn.MSELoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
-
 # input
 examples = normalize(torch.Tensor([[25.5, 65.0, 800],
                                    [18.2, 45.0, 400],
@@ -48,6 +38,16 @@ labels = torch.Tensor([[0.9, 0.4],
                        [0.2, 0.5],
                        [0.6, 0.3],
                        [0.7, 0.4]])
+
+# layer definition (out_size, in_size)
+hidden = nn.Linear(3, 8, bias=False)
+hidden.weight = nn.Parameter(torch.ones_like(hidden.weight) / 3)
+output = nn.Linear(8, 2, bias=False)
+output.weight = nn.Parameter(torch.ones_like(output.weight) / 8)
+model = nn.Sequential(hidden, nn.Tanh(), Dropout(), output, nn.Softmax(1))
+
+loss = nn.MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 
 # epochs
 epoch_num = 5

@@ -78,16 +78,16 @@ class SGD:
                 w.data -= self.alpha * w.grad
 
 
+# input
+example = Tensor([[25.5, 65.0, 800]])
+label = Tensor([[2.0, 8.0]])
+
 # layer definition (out_size, in_size)
 layer = Layer(Tensor([[0.5, 0.5, 0.5],
                       [1.0, 1.0, 1.0]], requires_grad=True))
 
 loss = MSELoss()
 optimizer = SGD([layer.weight], alpha=0.000001)
-
-# input
-example = Tensor([[25.5, 65.0, 800]])
-label = Tensor([[2.0, 8.0]])
 
 # epochs
 epoch_num = 5

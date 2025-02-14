@@ -19,12 +19,12 @@ class Layer:
         return Tensor(x.data.dot(self.weight.data.T))
 
 
+# input
+example = Tensor([25.5, 65.0, 800])
+
 # layer definition (out_size, in_size)
 layer = Layer(Tensor([[0.5, 0.5, 0.5],
                       [1.0, 1.0, 1.0]]))
-
-# input
-example = Tensor([25.5, 65.0, 800])
 
 # output
 prediction = layer(example)

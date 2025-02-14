@@ -11,13 +11,13 @@ def mse_loss(p, y):
     return ((p - y) ** 2).mean()
 
 
-# layer definition (out_size, in_size)
-weight = np.array([[0.5, 0.5, 0.5],
-                   [1.0, 1.0, 1.0]])
-
 # input
 example = np.array([25.5, 65.0, 800])
 label = np.array([2.0, 8.0])
+
+# layer definition (out_size, in_size)
+weight = np.array([[0.5, 0.5, 0.5],
+                   [1.0, 1.0, 1.0]])
 
 # output
 prediction = predict(example, weight)
