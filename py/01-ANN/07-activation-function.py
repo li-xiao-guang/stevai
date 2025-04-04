@@ -26,12 +26,12 @@ def backward(x, d, w, b):
     return w, b
 
 
-# activation function
+# 激活函数
 def relu(x):
     return np.maximum(0, x)
 
 
-# activation function backward
+# 激活反向传播函数
 def relu_backward(y, d):
     return (y > 0).astype(float) * d
 
