@@ -16,7 +16,7 @@ def mse_loss(p, y):
 
 # 梯度函数
 def gradient(p, y):
-    return p - y
+    return (p - y) * 2 / len(y)
 
 
 # 反向传播函数
@@ -26,31 +26,33 @@ def backward(x, d, w, b):
     return w, b
 
 
-# 特征数据
-features = np.array([[28.1, 58.0], [22.5, 72.0], [31.4, 45.0], [19.8, 85.0], [27.6, 63]])
-
-# 标签数据
-labels = np.array([165, 95, 210, 70, 155])
-
 # 模型参数（权重，偏差）
 weight = np.array([1.0, 1.0])
 bias = 0.5
 
+# 特征数据
+features = np.array([[28.1, 58.0], [22.5, 72.0], [31.4, 45.0], [19.8, 85.0], [27.6, 63]])
+# 标签数据
+labels = np.array([165, 95, 210, 70, 155])
+
 # 模型训练
 epoches = 10
 for i in range(epoches):
-    error = 0
+    epoch_error = 0
+
     for i in range(len(features)):
         feature = features[i: i + 1]
         label = labels[i: i + 1]
+
         # 模型推理
         prediction = predict(feature, weight, bias)
-        # 计算损失
-        delta = gradient(prediction, label)
-        # 反向传播
-        (weight, bias) = backward(feature, delta, weight, bias)
         # 计算误差
-        error += mse_loss(prediction, label)
+        error = mse_loss(prediction, label)
+        epoch_error += error
+        # 反向传播
+        delta = gradient(prediction, label)
+        (weight, bias) = backward(feature, delta, weight, bias)
+
     print(f"权重：{weight}")
     print(f"偏差：{bias}")
     print(f"误差：{error:.4f}\n")

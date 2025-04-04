@@ -16,7 +16,7 @@ def mse_loss(p, y):
 
 # 梯度函数
 def gradient(p, y):
-    return p - y
+    return (p - y) * 2 / len(y)
 
 
 # 反向传播函数
@@ -36,12 +36,6 @@ def relu_backward(y, d):
     return (y > 0).astype(float) * d
 
 
-# 特征数据
-features = np.array([[28.1, 58.0], [22.5, 72.0], [31.4, 45.0], [19.8, 85.0], [27.6, 63]])
-
-# 标签数据
-labels = np.array([165, 95, 210, 70, 155])
-
 # 隐藏层模型参数（权重，偏差）
 hidden_weight = np.array([[1.0, 1.0], [1.0, 0.5], [0.5, 1.0], [0.5, 0.5]])
 hidden_bias = [0.5, 0.5, 0.5, 0.5]
@@ -49,25 +43,33 @@ hidden_bias = [0.5, 0.5, 0.5, 0.5]
 output_weight = np.array([[1.0, 1.0, 1.0, 1.0]])
 output_bias = [0.5]
 
+# 特征数据
+features = np.array([[28.1, 58.0], [22.5, 72.0], [31.4, 45.0], [19.8, 85.0], [27.6, 63]])
+# 标签数据
+labels = np.array([165, 95, 210, 70, 155])
+
 # 模型训练
 epoches = 1000
 for i in range(epoches):
-    error = 0
+    epoch_error = 0
+
     for i in range(len(features)):
         feature = features[i: i + 1]
         label = labels[i: i + 1]
+
         # 模型推理
         hidden = relu(predict(feature, hidden_weight, hidden_bias))
         prediction = predict(hidden, output_weight, output_bias)
-        # 计算损失
+        # 计算误差
+        error = mse_loss(prediction, label)
+        epoch_error += error
+        # 反向传播
         output_delta = gradient(prediction, label)
         hidden_delta = output_delta.dot(output_weight)
         hidden_delta = relu_backward(hidden, hidden_delta)
-        # 反向传播
         (output_weight, output_bias) = backward(hidden, output_delta, output_weight, output_bias)
         (hidden_weight, hidden_bias) = backward(feature, hidden_delta, hidden_weight, hidden_bias)
-        # 计算误差
-        error += mse_loss(prediction, label)
+
     print(f"隐藏层权重：{hidden_weight}")
     print(f"隐藏层偏差：{hidden_bias}")
     print(f"输出层权重：{output_weight}")
