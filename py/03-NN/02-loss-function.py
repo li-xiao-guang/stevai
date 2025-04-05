@@ -32,12 +32,12 @@ class MSELoss:
 # 模型推理函数
 model = Linear()
 
-# 损失函数（平均平方差）
-loss = MSELoss()
-
 # 模型参数（权重，偏差）
 model.weight = Tensor([[1.0, 1.0]])
 model.bias = Tensor([0.5])
+
+# 损失函数
+loss = MSELoss()
 
 # 观测数据（温度，湿度）
 obs = Tensor([25.3, 65.0])

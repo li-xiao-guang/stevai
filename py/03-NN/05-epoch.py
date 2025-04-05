@@ -86,12 +86,13 @@ ALPHA = 0.0001
 # 模型推理函数
 model = Linear()
 
-# 损失函数（平均平方差）
-loss = MSELoss()
-
 # 模型参数（权重，偏差）
 model.weight = Tensor([[1.0, 1.0]], requires_grad=True)
 model.bias = Tensor([0.5], requires_grad=True)
+
+# 损失函数
+loss = MSELoss()
+# 优化器
 optimizer = SGD([model.weight, model.bias], alpha=ALPHA)
 
 # 特征数据

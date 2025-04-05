@@ -11,14 +11,15 @@ hidden = nn.Linear(2, 4)
 output = nn.Linear(4, 1)
 model = nn.Sequential(hidden, nn.ReLU(), output)
 
-# 损失函数（平均平方差）
-loss = nn.MSELoss()
-
 # 模型参数（权重，偏差）
 hidden.weight = nn.Parameter(torch.Tensor([[1.0, 1.0], [1.0, 0.5], [0.5, 1.0], [0.5, 0.5]]))
 hidden.bias = nn.Parameter(torch.Tensor([0.5, 0.5, 0.5, 0.5]))
 output.weight = nn.Parameter(torch.Tensor([[1.0, 1.0, 1.0, 1.0]]))
 output.bias = nn.Parameter(torch.Tensor([0.5]))
+
+# 损失函数
+loss = nn.MSELoss()
+# 优化器
 optimizer = torch.optim.SGD(model.parameters(), lr=ALPHA)
 
 # 特征数据

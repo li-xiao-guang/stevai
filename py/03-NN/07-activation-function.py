@@ -49,7 +49,7 @@ class Linear(Layer):
             if self.bias.requires_grad:
                 self.bias.grad = np.sum(p.grad, axis=0)
             if x.requires_grad:
-                x.grad = p.grad.T.dot(self.weight.data)
+                x.grad = p.grad.dot(self.weight.data)
 
         p.backward_fn = backward_fn
         p.parents = {self.weight, self.bias, x}
@@ -137,14 +137,15 @@ hidden = Linear()
 output = Linear()
 model = Model([hidden, ReLU(), output])
 
-# 损失函数（平均平方差）
-loss = MSELoss()
-
 # 模型参数（权重，偏差）
 hidden.weight = Tensor([[1.0, 1.0], [1.0, 0.5], [0.5, 1.0], [0.5, 0.5]], requires_grad=True)
 hidden.bias = Tensor([0.5, 0.5, 0.5, 0.5], requires_grad=True)
 output.weight = Tensor([[1.0, 1.0, 1.0, 1.0]], requires_grad=True)
 output.bias = Tensor([0.5], requires_grad=True)
+
+# 损失函数
+loss = MSELoss()
+# 优化器
 optimizer = SGD(model.parameters(), alpha=ALPHA)
 
 # 特征数据

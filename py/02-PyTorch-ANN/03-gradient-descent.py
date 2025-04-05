@@ -6,12 +6,12 @@ torch.set_default_dtype(torch.float64)
 # 模型推理函数
 model = nn.Linear(2, 1)
 
-# 损失函数（平均平方差）
-loss = nn.MSELoss()
-
 # 模型参数（权重，偏差）
 model.weight = nn.Parameter(torch.Tensor([[1.0, 1.0]]))
 model.bias = nn.Parameter(torch.Tensor([0.5]))
+
+# 损失函数
+loss = nn.MSELoss()
 
 # 特征数据
 features = torch.Tensor([[28.1, 58.0], [22.5, 72.0], [31.4, 45.0], [19.8, 85.0], [27.6, 63]])

@@ -9,12 +9,13 @@ ALPHA = 0.0001
 # 模型推理函数
 model = nn.Linear(2, 1)
 
-# 损失函数（平均平方差）
-loss = nn.MSELoss()
-
 # 模型参数（权重，偏差）
 model.weight = nn.Parameter(torch.Tensor([[1.0, 1.0]]))
 model.bias = nn.Parameter(torch.Tensor([0.5]))
+
+# 损失函数
+loss = nn.MSELoss()
+# 优化器
 optimizer = torch.optim.SGD(model.parameters(), lr=ALPHA)
 
 # 特征数据
