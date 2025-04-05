@@ -29,8 +29,6 @@ labels = torch.Tensor([[165], [95], [210], [70], [155]])
 # 模型训练
 epoches = 1000
 for i in range(epoches):
-    epoch_error = 0
-
     for i in range(len(features)):
         feature = features[i: i + 1]
         label = labels[i: i + 1]
@@ -39,7 +37,6 @@ for i in range(epoches):
         prediction = model(feature)
         # 计算误差
         error = loss(prediction, label)
-        epoch_error += error
         # 反向传播
         optimizer.zero_grad()
         error.backward()
@@ -49,7 +46,7 @@ for i in range(epoches):
     print(f"隐藏层偏差：{hidden.bias.data.numpy()}")
     print(f"输出层权重：{output.weight.data.numpy()}")
     print(f"输出层偏差：{output.bias.data.numpy()}")
-    print(f"误差：{epoch_error:.4f}\n")
+    print(f"误差：{error.data:.4f}\n")
 
 # 观测数据（温度，湿度）
 obs = torch.Tensor([25.3, 65.0])

@@ -41,8 +41,6 @@ labels = np.array([165, 95, 210, 70, 155])
 # 模型训练
 epoches = 1000
 for i in range(epoches):
-    epoch_error = 0
-
     for i in range(len(features)):
         feature = features[i: i + 1]
         label = labels[i: i + 1]
@@ -52,7 +50,6 @@ for i in range(epoches):
         prediction = predict(hidden, output_weight, output_bias)
         # 计算误差
         error = mse_loss(prediction, label)
-        epoch_error += error
         # 反向传播
         output_delta = gradient(prediction, label)
         hidden_delta = output_delta.dot(output_weight)
