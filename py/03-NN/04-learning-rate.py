@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# 张量类
 class Tensor:
 
     def __init__(self, data, requires_grad=False):
@@ -22,6 +23,7 @@ class Tensor:
                 p.backward(p.grad)
 
 
+# 线性回归层类
 class Linear:
 
     def __init__(self, w: Tensor = None, b: Tensor = None):
@@ -45,6 +47,7 @@ class Linear:
         return p
 
 
+# MSE损失函数类
 class MSELoss:
 
     def __call__(self, p: Tensor, y: Tensor):
@@ -59,6 +62,7 @@ class MSELoss:
         return mse
 
 
+# SGD优化器类
 class SGD:
 
     def __init__(self, parameters, alpha=0.01):

@@ -1,12 +1,14 @@
 import numpy as np
 
 
+# 张量类
 class Tensor:
 
     def __init__(self, data):
         self.data = np.array(data)
 
 
+# 线性回归层类
 class Linear:
 
     def __init__(self, w: Tensor = None, b: Tensor = None):
@@ -20,6 +22,7 @@ class Linear:
         return Tensor(x.data.dot(self.weight.data.T) + self.bias.data)
 
 
+# MSE损失函数类
 class MSELoss:
 
     def __call__(self, p: Tensor, y: Tensor):
