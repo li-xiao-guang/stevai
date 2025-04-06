@@ -77,7 +77,7 @@ class SGD:
     def step(self):
         for p in self.parameters:
             if p is not None and p.grad is not None:
-                p.data -= self.alpha * p.grad
+                p.data -= p.grad * self.alpha
 
 
 # 学习率

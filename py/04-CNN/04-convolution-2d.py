@@ -26,8 +26,17 @@ class Tensor:
 # 层基础类
 class Layer:
 
+    def __init__(self):
+        self.training = True
+
     def parameters(self):
         return []
+
+    def train(self):
+        self.training = True
+
+    def eval(self):
+        self.training = False
 
 
 # 线性回归层类
@@ -36,6 +45,7 @@ class Linear(Layer):
     def __init__(self, in_size, out_size):
         self.weight = Tensor(np.random.random([out_size, in_size]) / in_size, requires_grad=True)
         self.bias = Tensor(np.random.random([out_size]) / in_size, requires_grad=True)
+        super().__init__()
 
     def __call__(self, x: Tensor):
         return self.forward(x)
@@ -75,6 +85,61 @@ class Flatten(Layer):
 
         p.backward_fn = backward_fn
         p.parents = {x}
+        return p
+
+
+# 丢弃层类
+class Dropout(Layer):
+
+    def __call__(self, x: Tensor):
+        return self.forward(x)
+
+    def forward(self, x: Tensor):
+        if not self.training:
+            return x
+
+        mask = np.random.randint(2, size=x.data.shape)
+        p = Tensor(x.data * mask, requires_grad=True)
+
+        def backward_fn():
+            if x.requires_grad:
+                x.grad = p.grad * mask
+
+        p.backward_fn = backward_fn
+        p.parents = {x}
+        return p
+
+
+# 二维卷积层类
+class Convolution2D(Layer):
+
+    def __init__(self, rows, cols, num):
+        self.rows = rows
+        self.cols = cols
+        self.num = num
+        self.weight = Tensor(np.random.random([num, rows * cols]), requires_grad=True)
+        self.bias = Tensor(np.random.random([num]), requires_grad=True)
+
+    def __call__(self, x: Tensor):
+        return self.forward(x)
+
+    def forward(self, x: Tensor):
+        w = x.data.shape[1] - self.rows + 1
+        h = x.data.shape[2] - self.cols + 1
+        kernels = []
+        for row in range(w):
+            for col in range(h):
+                k = x.data[:, row:row + self.rows, col:col + self.cols]
+                kernels.append(k.reshape(-1))
+        kernels = np.array(kernels)
+        p = Tensor(kernels.dot(self.weight.data.T).reshape((1, w, h, self.num)), requires_grad=True)
+
+        def backward_fn():
+            if self.weight.requires_grad:
+                self.weight.grad = p.grad.reshape(-1, self.num).T.dot(kernels)
+
+        p.backward_fn = backward_fn
+        p.parents = {self.weight, self.bias, x}
         return p
 
 
@@ -176,6 +241,14 @@ class Model:
     def parameters(self):
         return [p for l in self.layers for p in l.parameters()]
 
+    def train(self):
+        for l in self.layers:
+            l.train()
+
+    def eval(self):
+        for l in self.layers:
+            l.eval()
+
 
 # MSE损失函数类
 class MSELoss:
@@ -214,11 +287,14 @@ class SGD:
 ALPHA = 0.01
 # 图像尺寸（行、列）
 ROW, COL = (28, 28)
+# 卷积核尺寸（行、列、数量）
+K_ROW, K_COL, K_NUM = (3, 3, 16)
 
 # 模型推理函数
-hidden = Linear(ROW * COL, 64)
+kernel = Convolution2D(K_ROW, K_COL, K_NUM)
+hidden = Linear((ROW - K_ROW + 1) * (COL - K_COL + 1) * K_NUM, 64)
 output = Linear(64, 10)
-model = Model([Flatten(), Tanh(), hidden, Tanh(), output, Softmax()])
+model = Model([kernel, Flatten(), Dropout(), Tanh(), hidden, Tanh(), output, Softmax()])
 
 # 损失函数
 loss = MSELoss()
@@ -267,6 +343,8 @@ with np.load('mnist.npz', allow_pickle=True) as f:
 features, labels = normalize(x_test, y_test)
 
 # 模型推理
+model.eval()
+
 result = 0
 for i in range(len(features)):
     feature = Tensor(features[i: i + 1])
