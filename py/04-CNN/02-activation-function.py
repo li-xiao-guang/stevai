@@ -59,7 +59,7 @@ class Linear(Layer):
         return [self.weight, self.bias]
 
 
-# 扁平化类
+# 扁平化层类
 class Flatten(Layer):
 
     def __call__(self, x: Tensor):

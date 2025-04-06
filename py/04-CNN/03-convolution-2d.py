@@ -59,6 +59,39 @@ class Linear(Layer):
         return [self.weight, self.bias]
 
 
+# 二维卷积层类
+class Convolution2D(Layer):
+
+    def __init__(self, rows, cols, num):
+        self.rows = rows
+        self.cols = cols
+        self.num = num
+        self.weight = Tensor(np.random.random([num, rows * cols]), requires_grad=True)
+        self.bias = Tensor(np.random.random([num]), requires_grad=True)
+
+    def __call__(self, x: Tensor):
+        return self.forward(x)
+
+    def forward(self, x: Tensor):
+        w = x.data.shape[1] - self.rows + 1
+        h = x.data.shape[2] - self.cols + 1
+        kernels = []
+        for row in range(w):
+            for col in range(h):
+                k = x.data[:, row:row + self.rows, col:col + self.cols]
+                kernels.append(k.reshape(-1))
+        kernels = np.array(kernels)
+        p = Tensor(kernels.dot(self.weight.data.T).reshape((1, w, h, self.num)), requires_grad=True)
+
+        def backward_fn():
+            if self.weight.requires_grad:
+                self.weight.grad = p.grad.reshape(-1, self.num).T.dot(kernels)
+
+        p.backward_fn = backward_fn
+        p.parents = {self.weight, self.bias, x}
+        return p
+
+
 # 扁平化层类
 class Flatten(Layer):
 
@@ -91,6 +124,68 @@ class ReLU(Layer):
         def backward_fn():
             if x.requires_grad:
                 x.grad = (p.data > 0).astype(float) * p.grad
+
+        p.backward_fn = backward_fn
+        p.parents = {x}
+        return p
+
+
+# Tanh激活函数类
+class Tanh(Layer):
+
+    def __call__(self, x: Tensor):
+        return self.forward(x)
+
+    @staticmethod
+    def forward(x: Tensor):
+        p = Tensor(np.tanh(x.data), requires_grad=True)
+
+        def backward_fn():
+            if x.requires_grad:
+                x.grad = p.grad * (1 - p.data ** 2)
+
+        p.backward_fn = backward_fn
+        p.parents = {x}
+        return p
+
+
+# Sigmoid激活函数类
+class Sigmoid(Layer):
+
+    def __call__(self, x: Tensor):
+        return self.forward(x)
+
+    @staticmethod
+    def forward(x: Tensor):
+        p = Tensor(1 / (1 + np.exp(-x.data)), requires_grad=True)
+
+        def backward_fn():
+            if x.requires_grad:
+                x.grad = p.grad * p.data * (1 - p.data)
+
+        p.backward_fn = backward_fn
+        p.parents = {x}
+        return p
+
+
+# Softmax激活函数类
+class Softmax(Layer):
+
+    def __init__(self, axis=1):
+        super().__init__()
+        self.axis = axis
+
+    def __call__(self, x: Tensor):
+        return self.forward(x)
+
+    def forward(self, x: Tensor):
+        temp = np.exp(x.data)
+        p = Tensor(temp / temp.sum(axis=self.axis, keepdims=True), requires_grad=True)
+
+        def backward_fn():
+            if x.requires_grad:
+                grad = p.grad - (p.grad * p.data).sum(axis=self.axis, keepdims=True)
+                x.grad = p.data * grad
 
         p.backward_fn = backward_fn
         p.parents = {x}
@@ -152,11 +247,14 @@ class SGD:
 ALPHA = 0.01
 # 图像尺寸（行、列）
 ROW, COL = (28, 28)
+# 卷积核尺寸（行、列、数量）
+K_ROW, K_COL, K_NUM = (3, 3, 16)
 
 # 模型推理函数
-hidden = Linear(ROW * COL, 64)
+kernel = Convolution2D(K_ROW, K_COL, K_NUM)
+hidden = Linear((ROW - K_ROW + 1) * (COL - K_COL + 1) * K_NUM, 64)
 output = Linear(64, 10)
-model = Model([Flatten(), hidden, output])
+model = Model([kernel, Flatten(), Tanh(), hidden, Tanh(), output, Softmax()])
 
 # 损失函数
 loss = MSELoss()
