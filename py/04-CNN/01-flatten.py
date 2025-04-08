@@ -133,9 +133,9 @@ class MSELoss:
 # SGD优化器类
 class SGD:
 
-    def __init__(self, parameters, alpha=0.01):
-        self.parameters = parameters
-        self.alpha = alpha
+    def __init__(self, params, lr=0.01):
+        self.parameters = params
+        self.alpha = lr
 
     def zero_grad(self):
         for p in self.parameters:
@@ -150,7 +150,7 @@ class SGD:
 
 # 学习率
 ALPHA = 0.01
-# 图像尺寸（行、列）
+# 图像尺寸（行，列）
 ROW, COL = (28, 28)
 
 # 模型推理函数
@@ -161,7 +161,7 @@ model = Model([Flatten(), hidden, output])
 # 损失函数
 loss = MSELoss()
 # 优化器
-optimizer = SGD(model.parameters(), alpha=ALPHA)
+optimizer = SGD(model.parameters(), lr=ALPHA)
 
 
 # 规范化函数
@@ -180,9 +180,9 @@ features, labels = normalize(x_train, y_train)
 # 模型训练
 epoches = 10
 for i in range(epoches):
-    for i in range(len(features.data)):
-        feature = Tensor(features.data[i: i + 1])
-        label = Tensor(labels.data[i: i + 1])
+    for i in range(len(features)):
+        feature = Tensor(features[i: i + 1])
+        label = Tensor(labels[i: i + 1])
 
         # 模型推理
         prediction = model(feature)

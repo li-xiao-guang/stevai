@@ -85,9 +85,9 @@ class MSELoss:
 # SGD优化器类
 class SGD:
 
-    def __init__(self, parameters, alpha=0.01):
-        self.parameters = parameters
-        self.alpha = alpha
+    def __init__(self, params, lr=0.01):
+        self.parameters = params
+        self.alpha = lr
 
     def zero_grad(self):
         for p in self.parameters:
@@ -117,7 +117,7 @@ output.bias = Tensor([0.5], requires_grad=True)
 # 损失函数
 loss = MSELoss()
 # 优化器
-optimizer = SGD(model.parameters(), alpha=ALPHA)
+optimizer = SGD(model.parameters(), lr=ALPHA)
 
 # 特征数据
 features = Tensor([[28.1, 58.0], [22.5, 72.0], [31.4, 45.0], [19.8, 85.0], [27.6, 63]])

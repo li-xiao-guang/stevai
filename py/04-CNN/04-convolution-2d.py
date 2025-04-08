@@ -118,7 +118,7 @@ class Convolution2D(Layer):
         self.cols = cols
         self.num = num
         self.weight = Tensor(np.random.random([num, rows * cols]), requires_grad=True)
-        self.bias = Tensor(np.random.random([num]), requires_grad=True)
+        super().__init__()
 
     def __call__(self, x: Tensor):
         return self.forward(x)
@@ -139,8 +139,11 @@ class Convolution2D(Layer):
                 self.weight.grad = p.grad.reshape(-1, self.num).T.dot(kernels)
 
         p.backward_fn = backward_fn
-        p.parents = {self.weight, self.bias, x}
+        p.parents = {self.weight, x}
         return p
+
+    def parameters(self):
+        return [self.weight]
 
 
 # ReLU激活函数类
@@ -204,8 +207,8 @@ class Sigmoid(Layer):
 class Softmax(Layer):
 
     def __init__(self, axis=1):
-        super().__init__()
         self.axis = axis
+        super().__init__()
 
     def __call__(self, x: Tensor):
         return self.forward(x)
@@ -268,9 +271,9 @@ class MSELoss:
 # SGD优化器类
 class SGD:
 
-    def __init__(self, parameters, alpha=0.01):
-        self.parameters = parameters
-        self.alpha = alpha
+    def __init__(self, params, lr=0.01):
+        self.parameters = params
+        self.alpha = lr
 
     def zero_grad(self):
         for p in self.parameters:
@@ -285,9 +288,9 @@ class SGD:
 
 # 学习率
 ALPHA = 0.01
-# 图像尺寸（行、列）
+# 图像尺寸（行，列）
 ROW, COL = (28, 28)
-# 卷积核尺寸（行、列、数量）
+# 卷积核尺寸（行，列，数量）
 K_ROW, K_COL, K_NUM = (3, 3, 16)
 
 # 模型推理函数
@@ -299,7 +302,7 @@ model = Model([kernel, Flatten(), Dropout(), Tanh(), hidden, Tanh(), output, Sof
 # 损失函数
 loss = MSELoss()
 # 优化器
-optimizer = SGD(model.parameters(), alpha=ALPHA)
+optimizer = SGD(model.parameters(), lr=ALPHA)
 
 
 # 规范化函数
@@ -318,9 +321,9 @@ features, labels = normalize(x_train, y_train)
 # 模型训练
 epoches = 10
 for i in range(epoches):
-    for i in range(len(features.data)):
-        feature = Tensor(features.data[i: i + 1])
-        label = Tensor(labels.data[i: i + 1])
+    for i in range(len(features)):
+        feature = Tensor(features[i: i + 1])
+        label = Tensor(labels[i: i + 1])
 
         # 模型推理
         prediction = model(feature)
