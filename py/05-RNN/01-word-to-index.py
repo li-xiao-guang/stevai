@@ -15,11 +15,10 @@ class Word2Index:
         x = x.apply(self.convert_lower)
         x = x.apply(self.remove_special)
 
-        reviews = list(map(lambda s: s.split(), x))
-        self.words = list(set(w for r in reviews for w in r))
+        self.reviews = list(map(lambda s: s.split(), x))
+        self.sentiments = list(y)
+        self.words = list(set(w for r in self.reviews for w in r))
         self.word2index = {w: self.words.index(w) for w in self.words}
-        self.features = [list(set(self.word2index[w] for w in r)) for r in reviews]
-        self.labels = list(y.map({'positive': 1, 'negative': 0}))
 
     @staticmethod
     def clean_html(text):

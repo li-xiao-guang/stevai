@@ -182,8 +182,8 @@ class Pool2D(Layer):
         return p
 
 
-# 嵌入层类
-class Embedding(Layer):
+# 单热向量嵌入层类
+class OneHotEmbedding(Layer):
 
     def __init__(self, in_size, out_size):
         self.weight = Tensor(np.random.random([out_size, in_size]) / out_size, requires_grad=True)
@@ -361,11 +361,10 @@ class Word2Index:
         x = x.apply(self.convert_lower)
         x = x.apply(self.remove_special)
 
-        reviews = list(map(lambda s: s.split(), x))
-        self.words = list(set(w for r in reviews for w in r))
+        self.reviews = list(map(lambda s: s.split(), x))
+        self.sentiments = list(y)
+        self.words = list(set(w for r in self.reviews for w in r))
         self.word2index = {w: self.words.index(w) for w in self.words}
-        self.features = [list(set(self.word2index[w] for w in r)) for r in reviews]
-        self.labels = list(y.map({'positive': 1, 'negative': 0}))
 
     @staticmethod
     def clean_html(text):
@@ -384,14 +383,23 @@ class Word2Index:
         return x
 
 
+# 单热向量映射类
+class OneHotEncoding(Word2Index):
+
+    def __init__(self, filename):
+        super().__init__(filename)
+        self.features = [list(set(self.word2index[w] for w in r)) for r in self.reviews]
+        self.labels = [0 if s == "negative" else 1 for s in self.sentiments]
+
+
 # 学习率
 ALPHA = 0.01
 
 # 加载数据（特征数据，标签数据，词汇表，映射表）
-data = Word2Index('imdb.csv')
+data = OneHotEncoding('imdb.csv')
 
 # 模型推理函数
-embedding = Embedding(len(data.words), 64)
+embedding = OneHotEmbedding(len(data.words), 64)
 output = Linear(64, 1)
 model = Model([embedding, ReLU(), output, Sigmoid()])
 
