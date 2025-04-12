@@ -39,5 +39,5 @@ class Word2Index:
 
 # 加载数据（特征数据，标签数据，词汇表，映射表）
 data = Word2Index('imdb.csv')
-print(f'评论：{len(data.labels)}')
+print(f'评论：{len(data.reviews)}')
 print(f'单词：{len(data.words)}')

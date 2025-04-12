@@ -45,7 +45,7 @@ class Linear:
                 x.grad = p.grad.dot(self.weight.data)
 
         p.backward_fn = backward_fn
-        p.parents = {self.weight, x}
+        p.parents = {self.weight, self.bias, x}
         return p
 
 
@@ -126,7 +126,7 @@ labels = Tensor([[165], [95], [210], [70], [155]])
 
 # 模型训练
 epoches = 1000
-for i in range(epoches):
+for _ in range(epoches):
     for i in range(len(features.data)):
         feature = Tensor(features.data[i: i + 1])
         label = Tensor(labels.data[i: i + 1])

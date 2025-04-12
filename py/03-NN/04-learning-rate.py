@@ -43,7 +43,7 @@ class Linear:
                 self.bias.grad = np.sum(p.grad, axis=0)
 
         p.backward_fn = backward_fn
-        p.parents = {self.weight, x}
+        p.parents = {self.weight, self.bias}
         return p
 
 

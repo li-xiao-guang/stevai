@@ -182,8 +182,8 @@ class Pool2D(Layer):
         return p
 
 
-# 单热向量嵌入层类
-class OneHotEmbedding(Layer):
+# 嵌入层类
+class Embedding(Layer):
 
     def __init__(self, in_size, out_size):
         self.weight = Tensor(np.random.random([out_size, in_size]) / out_size, requires_grad=True)
@@ -383,7 +383,7 @@ class Word2Index:
         return x
 
 
-# 单热向量映射类
+# 单热映射类
 class OneHotEncoding(Word2Index):
 
     def __init__(self, filename):
@@ -399,7 +399,7 @@ ALPHA = 0.01
 data = OneHotEncoding('imdb.csv')
 
 # 模型推理函数
-embedding = OneHotEmbedding(len(data.words), 64)
+embedding = Embedding(len(data.words), 64)
 output = Linear(64, 1)
 model = Model([embedding, ReLU(), output, Sigmoid()])
 
@@ -414,7 +414,7 @@ labels = data.labels[:2000]
 
 # 模型训练
 epoches = 10
-for i in range(epoches):
+for _ in range(epoches):
     for i in range(len(features)):
         feature = Tensor(features[i: i + 1])
         label = Tensor(labels[i: i + 1])

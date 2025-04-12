@@ -1,4 +1,7 @@
+import re
+
 import numpy as np
+import pandas as pd
 
 
 # 张量类
@@ -137,6 +140,72 @@ class Convolution2D(Layer):
         def backward_fn():
             if self.weight.requires_grad:
                 self.weight.grad = p.grad.reshape(-1, self.num).T.dot(kernels)
+
+        p.backward_fn = backward_fn
+        p.parents = {self.weight, x}
+        return p
+
+    def parameters(self):
+        return [self.weight]
+
+
+# 二维池化层类
+class Pool2D(Layer):
+
+    def __init__(self, size):
+        self.size = size
+        super().__init__()
+
+    def __call__(self, x: Tensor):
+        return self.forward(x)
+
+    def forward(self, x: Tensor):
+        w = x.data.shape[1] // self.size
+        h = x.data.shape[2] // self.size
+        kernels = []
+        for row in range(w):
+            for col in range(h):
+                r = row * self.size
+                c = col * self.size
+                k = x.data[:, r:r + self.size, c:c + self.size]
+                kernels.append(k.reshape(1, self.size * self.size, -1).max(1))
+        kernels = np.array(kernels).reshape((1, w, h, -1))
+        p = Tensor(kernels, requires_grad=True)
+
+        def backward_fn():
+            if x.requires_grad:
+                x.grad = np.repeat(p.grad, self.size, axis=1)
+                x.grad = np.repeat(x.grad, self.size, axis=2)
+
+        p.backward_fn = backward_fn
+        p.parents = {x}
+        return p
+
+
+# 嵌入层类
+class Embedding(Layer):
+
+    def __init__(self, size):
+        self.weight = Tensor(np.random.random(size) / size, requires_grad=True)
+        super().__init__()
+
+    def __call__(self, x: Tensor):
+        return self.forward(x)
+
+    def forward(self, x: Tensor):
+        v = np.zeros_like(self.weight.data)
+        for w in x.data.flatten():
+            d = np.zeros_like(self.weight.data)
+            d[w] = 1
+            v = v * self.weight.data.T + d
+        p = Tensor([v], requires_grad=True)
+
+        def backward_fn():
+            if self.weight.requires_grad:
+                if self.weight.grad is None:
+                    self.weight.grad = np.zeros_like(self.weight.data)
+                for w in x.data.flatten()[::-1]:
+                    self.weight.grad[w] += p.grad.flatten()[w]
 
         p.backward_fn = backward_fn
         p.parents = {self.weight, x}
@@ -286,64 +355,97 @@ class SGD:
                 p.data -= self.alpha * p.grad
 
 
+# 映射类
+class Word2Index:
+
+    def __init__(self, filename):
+        df = pd.read_csv(filename)
+
+        x = df['review']
+        y = df['sentiment']
+        x = x.apply(self.clean_html)
+        x = x.apply(self.convert_lower)
+        x = x.apply(self.remove_special)
+
+        self.reviews = list(map(lambda s: s.split(), x))
+        self.sentiments = list(y)
+        self.words = list(set(w for r in self.reviews for w in r))
+        self.word2index = {w: self.words.index(w) for w in self.words}
+
+    @staticmethod
+    def clean_html(text):
+        p = re.compile(r'<.*?>')
+        return p.sub('', text)
+
+    @staticmethod
+    def convert_lower(text):
+        return text.lower()
+
+    @staticmethod
+    def remove_special(text):
+        x = ''
+        for t in text:
+            x = x + t if t.isalnum() else x + ' '
+        return x
+
+
+# 词袋映射类
+class BagOfWordsEncoding(Word2Index):
+
+    def __init__(self, filename):
+        super().__init__(filename)
+        self.features = [[self.word2index[w] for w in r] for r in self.reviews]
+        self.labels = [0 if s == "negative" else 1 for s in self.sentiments]
+
+
 # 学习率
 ALPHA = 0.01
-# 图像尺寸（行，列）
-ROW, COL = (28, 28)
-# 卷积核尺寸（行，列，数量）
-K_ROW, K_COL, K_NUM = (3, 3, 16)
+
+# 加载数据（特征数据，标签数据，词汇表，映射表）
+data = BagOfWordsEncoding('imdb.csv')
 
 # 模型推理函数
-kernel = Convolution2D(K_ROW, K_COL, K_NUM)
-hidden = Linear((ROW - K_ROW + 1) * (COL - K_COL + 1) * K_NUM, 64)
-output = Linear(64, 10)
-model = Model([kernel, Flatten(), Dropout(), Tanh(), hidden, Tanh(), output, Softmax()])
+embedding = Embedding(len(data.words))
+hidden = Linear(len(data.words), 64)
+output = Linear(64, len(data.words))
+model = Model([embedding, hidden, ReLU(), output, Sigmoid()])
 
 # 损失函数
 loss = MSELoss()
 # 优化器
 optimizer = SGD(model.parameters(), lr=ALPHA)
 
-
-# 规范化函数
-def normalize(x, y):
-    inputs = x / 255
-    targets = np.zeros((len(y), 10))
-    targets[range(len(y)), y] = 1
-    return inputs, targets
-
-
 # 训练数据（特征数据，标签数据）
-with np.load('mnist.npz', allow_pickle=True) as f:
-    x_train, y_train = f['x_train'][:2000], f['y_train'][:2000]
-features, labels = normalize(x_train, y_train)
+features = data.features[:2000]
+labels = data.labels[:2000]
 
 # 模型训练
 epoches = 10
 for _ in range(epoches):
-    for i in range(len(features)):
-        feature = Tensor(features[i: i + 1])
-        label = Tensor(labels[i: i + 1])
+    for i in range(len(features) - 1):
+        feature = features[i]
+        for j in range(len(feature) - 2):
+            f = Tensor([feature[:j + 1]])
+            l = Tensor([np.zeros(len(data.words))])
+            l.data[0][feature[j + 1]] = 1
 
-        # 模型推理
-        prediction = model(feature)
-        # 计算误差
-        error = loss(prediction, label)
-        # 反向传播
-        optimizer.zero_grad()
-        error.backward()
-        optimizer.step()
+            # 模型推理
+            prediction = model(f)
+            # 计算误差
+            error = loss(prediction, l)
+            # 反向传播
+            optimizer.zero_grad()
+            error.backward()
+            optimizer.step()
 
-    print(f"隐藏层权重：{hidden.weight.data}")
-    print(f"隐藏层偏差：{hidden.bias.data}")
+    print(f"嵌入层权重：{embedding.weight.data}")
     print(f"输出层权重：{output.weight.data}")
     print(f"输出层偏差：{output.bias.data}")
     print(f"误差：{error.data:.4f}\n")
 
 # 测试数据（特征数据，标签数据）
-with np.load('mnist.npz', allow_pickle=True) as f:
-    x_test, y_test = f['x_test'][:1000], f['y_test'][:1000]
-features, labels = normalize(x_test, y_test)
+features = data.features[-1000:]
+labels = data.labels[-1000:]
 
 # 模型推理
 model.eval()
@@ -351,10 +453,12 @@ model.eval()
 result = 0
 for i in range(len(features)):
     feature = Tensor(features[i: i + 1])
-    label = Tensor(labels[i: i + 1])
+    f = Tensor([feature[:len(feature) - 1]])
+    l = Tensor([np.zeros(len(data.words))])
+    l.data[0][feature[len(feature) - 1]] = 1
 
-    prediction = model(feature)
-    if prediction.data.argmax() == label.data.argmax():
+    prediction = model(f)
+    if prediction.data.argmax() == l.data.argmax():
         result += 1
 
 print(f'测试结果：{result} of {len(labels)}')

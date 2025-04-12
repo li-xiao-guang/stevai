@@ -155,7 +155,7 @@ labels = Tensor([[165], [95], [210], [70], [155]])
 
 # 模型训练
 epoches = 1000
-for i in range(epoches):
+for _ in range(epoches):
     for i in range(len(features.data)):
         feature = Tensor(features.data[i: i + 1])
         label = Tensor(labels.data[i: i + 1])

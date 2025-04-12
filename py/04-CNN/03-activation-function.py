@@ -281,7 +281,7 @@ features, labels = normalize(x_train, y_train)
 
 # 模型训练
 epoches = 10
-for i in range(epoches):
+for _ in range(epoches):
     for i in range(len(features)):
         feature = Tensor(features[i: i + 1])
         label = Tensor(labels[i: i + 1])

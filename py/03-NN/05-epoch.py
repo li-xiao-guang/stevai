@@ -43,7 +43,7 @@ class Linear:
                 self.bias.grad = np.sum(p.grad, axis=0)
 
         p.backward_fn = backward_fn
-        p.parents = {self.weight, x}
+        p.parents = {self.weight, self.bias}
         return p
 
 
@@ -102,7 +102,7 @@ labels = Tensor([[165], [95], [210], [70], [155]])
 
 # 模型训练
 epoches = 10
-for i in range(epoches):
+for _ in range(epoches):
     for i in range(len(features.data)):
         feature = Tensor(features.data[i: i + 1])
         label = Tensor(labels.data[i: i + 1])

@@ -29,7 +29,7 @@ labels = torch.Tensor([[165], [95], [210], [70], [155]])
 
 # 模型训练
 epoches = 1000
-for i in range(epoches):
+for _ in range(epoches):
     for i in range(len(features)):
         feature = features[i: i + 1]
         label = labels[i: i + 1]
