@@ -142,7 +142,7 @@ class Convolution2D(Layer):
                 self.weight.grad = p.grad.reshape(-1, self.num).T.dot(kernels)
 
         p.backward_fn = backward_fn
-        p.parents = {self.weight, x}
+        p.parents = {self.weight}
         return p
 
     def parameters(self):
@@ -182,11 +182,11 @@ class Pool2D(Layer):
         return p
 
 
-# 嵌入层类
-class Embedding(Layer):
+# 词袋嵌入层类
+class BagOfWordsEmbedding(Layer):
 
     def __init__(self, in_size, out_size):
-        self.weight = Tensor(np.random.random([out_size, in_size]) / out_size, requires_grad=True)
+        self.weight = Tensor(np.random.random([out_size, in_size]) / in_size, requires_grad=True)
         super().__init__()
 
     def __call__(self, x: Tensor):
@@ -392,14 +392,23 @@ class OneHotEncoding(Word2Index):
         self.labels = [0 if s == "negative" else 1 for s in self.sentiments]
 
 
+# 词袋映射类
+class BagOfWordsEncoding(Word2Index):
+
+    def __init__(self, filename):
+        super().__init__(filename)
+        self.features = [list(self.word2index[w] for w in r) for r in self.reviews]
+        self.labels = [0 if s == "negative" else 1 for s in self.sentiments]
+
+
 # 学习率
 ALPHA = 0.01
 
 # 加载数据（特征数据，标签数据，词汇表，映射表）
-data = OneHotEncoding('imdb.csv')
+data = BagOfWordsEncoding('reviews.csv')
 
 # 模型推理函数
-embedding = Embedding(len(data.words), 64)
+embedding = BagOfWordsEmbedding(len(data.words), 64)
 output = Linear(64, 1)
 model = Model([embedding, ReLU(), output, Sigmoid()])
 
@@ -409,11 +418,11 @@ loss = MSELoss()
 optimizer = SGD(model.parameters(), lr=ALPHA)
 
 # 训练数据（特征数据，标签数据）
-features = data.features[:2000]
-labels = data.labels[:2000]
+features = data.features[:-30]
+labels = data.labels[:-30]
 
 # 模型训练
-epoches = 10
+epoches = 100
 for _ in range(epoches):
     for i in range(len(features)):
         feature = Tensor(features[i: i + 1])
@@ -434,8 +443,8 @@ for _ in range(epoches):
     print(f"误差：{error.data:.4f}\n")
 
 # 测试数据（特征数据，标签数据）
-features = data.features[-1000:]
-labels = data.labels[-1000:]
+features = data.features[-30:]
+labels = data.labels[-30:]
 
 # 模型推理
 model.eval()

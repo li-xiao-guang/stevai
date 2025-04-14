@@ -139,7 +139,7 @@ class Convolution2D(Layer):
                 self.weight.grad = p.grad.reshape(-1, self.num).T.dot(kernels)
 
         p.backward_fn = backward_fn
-        p.parents = {self.weight, x}
+        p.parents = {self.weight}
         return p
 
     def parameters(self):

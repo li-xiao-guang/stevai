@@ -371,6 +371,24 @@ class MSELoss:
         return mse
 
 
+class CELoss:
+
+    def __call__(self, p: Tensor, y: Tensor):
+        exp = np.exp(p.data - np.max(p.data, axis=1, keepdims=True))
+        softmax = exp / np.sum(exp, axis=1, keepdims=True)
+
+        log = np.log(softmax + 1e-10)
+        ce = Tensor(-np.sum(y.data * log) / len(p.data), requires_grad=True)
+
+        def backward_fn():
+            if p.requires_grad:
+                p.grad = (softmax - y.data) / len(p.data)
+
+        ce.backward_fn = backward_fn
+        ce.parents = {p}
+        return ce
+
+
 # SGD优化器类
 class SGD:
 
@@ -454,7 +472,7 @@ output = Linear(64, len(dataset.words))
 model = Model([embedding, hidden, ReLU(), output, Sigmoid()])
 
 # 损失函数
-loss = MSELoss()
+loss = CELoss()
 # 优化器
 optimizer = SGD(model.parameters(), lr=ALPHA)
 
