@@ -123,7 +123,7 @@ class MSELoss:
 
         def backward_fn():
             if p.requires_grad:
-                p.grad = (p.data - y.data) * 2 / len(y.data)
+                p.grad = (p.data - y.data) * 2 / len(y.data.T)
 
         mse.backward_fn = backward_fn
         mse.parents = {p}

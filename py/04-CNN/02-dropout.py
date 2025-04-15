@@ -98,7 +98,7 @@ class Dropout(Layer):
         if not self.training:
             return x
 
-        mask = np.random.randint(2, size=x.data.shape)
+        mask = np.random.randint(0, 2, size=x.data.shape) > 0.5
         p = Tensor(x.data * mask, requires_grad=True)
 
         def backward_fn():
@@ -163,7 +163,7 @@ class MSELoss:
 
         def backward_fn():
             if p.requires_grad:
-                p.grad = (p.data - y.data) * 2 / len(y.data)
+                p.grad = (p.data - y.data) * 2 / len(y.data.T)
 
         mse.backward_fn = backward_fn
         mse.parents = {p}
